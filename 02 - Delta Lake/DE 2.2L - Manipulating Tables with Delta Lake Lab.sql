@@ -63,7 +63,8 @@
 -- COMMAND ----------
 
 -- TODO
-<FILL-IN>
+create table beans
+(name string, color string, grams float, delicious boolean)
 
 -- COMMAND ----------
 
@@ -107,7 +108,7 @@ INSERT INTO beans VALUES
 -- COMMAND ----------
 
 -- TODO
-<FILL-IN>
+select * from beans
 
 -- COMMAND ----------
 
@@ -120,7 +121,7 @@ INSERT INTO beans VALUES
 -- COMMAND ----------
 
 -- TODO
-<FILL-IN>
+insert into beans values
 ('pinto', 'brown', 1.5, true),
 ('green', 'green', 178.3, true),
 ('beanbag chair', 'white', 40000, false)
@@ -171,7 +172,7 @@ WHERE name = "jelly"
 -- COMMAND ----------
 
 -- TODO
-<FILL-IN>
+update beans set grams = 1500 where name = 'pinto'
 
 -- COMMAND ----------
 
@@ -205,7 +206,11 @@ WHERE name = "jelly"
 -- COMMAND ----------
 
 -- TODO
-<FILL-IN>
+delete from beans where delicious = False
+
+-- COMMAND ----------
+
+select * from beans
 
 -- COMMAND ----------
 
@@ -257,7 +262,13 @@ SELECT * FROM new_beans
 -- COMMAND ----------
 
 -- TODO
-<FILL-IN>
+merge into beans b using new_beans nb 
+on b.name = nb.name
+and b.color = nb.color
+when matched and nb.delicious = true
+  then update set grams = b.grams + nb.grams
+when not matched and nb.delicious = true
+  then insert *
 
 -- COMMAND ----------
 
@@ -266,6 +277,10 @@ SELECT * FROM new_beans
 -- MAGIC 
 -- MAGIC 
 -- MAGIC Run the cell below to check your work.
+
+-- COMMAND ----------
+
+select * from beans
 
 -- COMMAND ----------
 
@@ -298,7 +313,7 @@ SELECT * FROM new_beans
 -- COMMAND ----------
 
 -- TODO
-<FILL-IN>
+drop table beans
 
 -- COMMAND ----------
 

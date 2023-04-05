@@ -41,6 +41,10 @@
 
 -- COMMAND ----------
 
+-- MAGIC %fs ls dbfs:/mnt/dbacademy-datasets/data-engineering-with-databricks/v02/weather
+
+-- COMMAND ----------
+
 -- MAGIC %md <i18n value="306e4a60-45cf-40af-850f-4339700000b8"/>
 -- MAGIC 
 -- MAGIC 
@@ -79,7 +83,7 @@ FROM parquet.`${DA.paths.datasets}/weather/StationData-parquet`
 
 -- TODO
 
-<FILL-IN> ${da.schema_name}
+create database if not exists ${da.schema_name}
 
 -- COMMAND ----------
 
@@ -104,8 +108,7 @@ FROM parquet.`${DA.paths.datasets}/weather/StationData-parquet`
 -- COMMAND ----------
 
 -- TODO
-
-<FILL-IN> ${da.schema_name}
+use ${da.schema_name}
 
 -- COMMAND ----------
 
@@ -129,9 +132,8 @@ FROM parquet.`${DA.paths.datasets}/weather/StationData-parquet`
 -- COMMAND ----------
 
 -- TODO
-
-<FILL-IN>
-SELECT * 
+create table weather_managed as
+select *
 FROM parquet.`${DA.paths.datasets}/weather/StationData-parquet`
 
 -- COMMAND ----------
@@ -148,6 +150,10 @@ FROM parquet.`${DA.paths.datasets}/weather/StationData-parquet`
 
 -- COMMAND ----------
 
+select * from weather_managed
+
+-- COMMAND ----------
+
 -- MAGIC %md <i18n value="155e14f1-65cf-40be-9d01-68b3775c2381"/>
 -- MAGIC 
 -- MAGIC 
@@ -158,8 +164,7 @@ FROM parquet.`${DA.paths.datasets}/weather/StationData-parquet`
 -- COMMAND ----------
 
 -- TODO
-
-<FILL-IN>
+create table weather_external
 LOCATION "${da.paths.working_dir}/lab/external"
 AS SELECT * 
 FROM parquet.`${DA.paths.datasets}/weather/StationData-parquet`
@@ -194,10 +199,19 @@ DESCRIBE EXTENDED weather_external
 
 -- COMMAND ----------
 
+-- MAGIC %fs ls dbfs:/mnt/dbacademy-users/anhhoang.chu@databricks.com/data-engineering-with-databricks/lab
+
+-- COMMAND ----------
+
 -- MAGIC %md <i18n value="6996903c-737b-4b88-8d51-3e0a01b347be"/>
 -- MAGIC 
 -- MAGIC 
 -- MAGIC Run the following helper code to extract and compare the table locations.
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC spark.sql("describe detail weather_external").select("location").first()
 
 -- COMMAND ----------
 
@@ -249,8 +263,7 @@ DESCRIBE EXTENDED weather_external
 -- COMMAND ----------
 
 -- TODO
-
-<FILL_IN> ${da.schema_name}
+drop database ${da.schema_name} cascade
 
 -- COMMAND ----------
 
@@ -275,8 +288,8 @@ DESCRIBE EXTENDED weather_external
 -- COMMAND ----------
 
 -- MAGIC %python
--- MAGIC # files = dbutils.fs.ls(managedTablePath)
--- MAGIC # display(files)
+-- MAGIC files = dbutils.fs.ls(managedTablePath)
+-- MAGIC display(files)
 
 -- COMMAND ----------
 
@@ -315,6 +328,10 @@ USE ${da.schema_name};
 
 -- COMMAND ----------
 
+use database ${da.schema_name}
+
+-- COMMAND ----------
+
 -- MAGIC %md <i18n value="5b5dbf00-f9ee-4bc5-964e-22376e09be79"/>
 -- MAGIC 
 -- MAGIC 
@@ -322,9 +339,14 @@ USE ${da.schema_name};
 
 -- COMMAND ----------
 
--- TODO
+-- MAGIC %python
+-- MAGIC dbutils.fs.ls(f"{DA.paths.datasets}/weather")
 
-<FILL_IN>
+-- COMMAND ----------
+
+-- TODO
+create table weather_managed as
+select * from parquet.`${DA.paths.datasets}/weather/StationData-parquet`
 
 -- COMMAND ----------
 
@@ -367,8 +389,7 @@ USE ${da.schema_name};
 -- COMMAND ----------
 
 -- TODO
-
-<FILL-IN>
+create or replace view celsius
 AS (SELECT *
   FROM weather_managed
   WHERE UNIT = "C")
@@ -378,6 +399,10 @@ AS (SELECT *
 -- MAGIC %md <i18n value="14937501-7f2a-469d-b47f-db0c656d8da3"/>
 -- MAGIC 
 -- MAGIC Run the cell below to check your work.
+
+-- COMMAND ----------
+
+show tables
 
 -- COMMAND ----------
 
@@ -395,8 +420,7 @@ AS (SELECT *
 -- COMMAND ----------
 
 -- TODO
-
-<FILL-IN>
+create or replace temp view celsius_temp
 AS (SELECT *
   FROM weather_managed
   WHERE UNIT = "C")
@@ -424,7 +448,7 @@ AS (SELECT *
 
 -- TODO
 
-<FILL-IN>
+create or replace global temp view celsius_global
 AS (SELECT *
   FROM weather_managed
   WHERE UNIT = "C")
