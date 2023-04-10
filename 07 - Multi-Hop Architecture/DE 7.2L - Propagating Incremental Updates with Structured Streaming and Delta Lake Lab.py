@@ -42,16 +42,28 @@
 
 # COMMAND ----------
 
+dbutils.fs.ls(f"{DA.paths.checkpoints}/customers")
+
+# COMMAND ----------
+
+dbutils.fs.ls(f"{DA.paths.datasets}/retail-org/customers")
+
+# COMMAND ----------
+
 # TODO
 customers_checkpoint_path = f"{DA.paths.checkpoints}/customers"
 dataset_source = f"{DA.paths.datasets}/retail-org/customers/"
 
 query = (spark
   .readStream
-  <FILL-IN>
+  .format("cloudFiles")
+  .option("cloudFiles.format", "csv")
+  .option("cloudFiles.schemaLocation", customers_checkpoint_path)
   .load(dataset_source)
   .writeStream
-  <FILL-IN>
+  .format("delta")
+  .option("checkpointLocation", customers_checkpoint_path)
+  .outputMode("append")
   .table("bronze")
 )
 
@@ -88,6 +100,11 @@ assert spark.table("bronze").dtypes ==  [('customer_id', 'string'), ('tax_id', '
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC select * from bronze_temp
+
+# COMMAND ----------
+
 # MAGIC %md <i18n value="14a123fc-6cae-4780-b2fb-08ffa1da4989"/>
 # MAGIC 
 # MAGIC 
@@ -100,17 +117,28 @@ assert spark.table("bronze").dtypes ==  [('customer_id', 'string'), ('tax_id', '
 
 # COMMAND ----------
 
+spark.sql(f"SHOW TABLES").filter(f"tableName == 'bronze_temp'").show()
+
+# COMMAND ----------
+
 # MAGIC %sql
 # MAGIC -- TODO
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW bronze_enhanced_temp AS
-# MAGIC SELECT
-# MAGIC   <FILL-IN>
+# MAGIC SELECT *, 
+# MAGIC     current_timestamp() as receipt_time,
+# MAGIC     input_file_name() as source_file
+# MAGIC   from bronze_temp
+# MAGIC   where postcode > 0
 
 # COMMAND ----------
 
 # MAGIC %md <i18n value="4369381f-b2e0-4d88-9ccd-bcd6ff100f98"/>
 # MAGIC 
 # MAGIC Run the cell below to check your work.
+
+# COMMAND ----------
+
+spark.table("bronze_enhanced_temp")
 
 # COMMAND ----------
 
@@ -134,7 +162,10 @@ assert spark.table("bronze_enhanced_temp").isStreaming, "Not a streaming table"
 silver_checkpoint_path = f"{DA.paths.checkpoints}/silver"
 
 query = (spark.table("bronze_enhanced_temp")
-  <FILL-IN>
+  .writeStream
+  .format("delta")
+  .option("checkpointLocation", silver_checkpoint_path)
+  .outputMode("append")
   .table("silver"))
 
 # COMMAND ----------
@@ -184,8 +215,9 @@ assert spark.table("silver").filter("postcode <= 0").count() == 0, "Null postcod
 # MAGIC %sql
 # MAGIC -- TODO
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW customer_count_temp AS
-# MAGIC SELECT 
-# MAGIC <FILL-IN>
+# MAGIC SELECT state, count(customer_id) as customer_count
+# MAGIC FROM silver_temp 
+# MAGIC group by state 
 
 # COMMAND ----------
 
@@ -214,8 +246,14 @@ customers_count_checkpoint_path = f"{DA.paths.checkpoints}/customers_counts"
 query = (spark
   .table("customer_count_temp")
   .writeStream
-  <FILL-IN>
+  .format("delta")
+  .option("checkpointLocation", customers_count_checkpoint_path)
+  .outputMode("complete")
   .table("gold_customer_count_by_state"))
+
+# COMMAND ----------
+
+dbutils.fs.ls(f"{DA.paths.checkpoints}")
 
 # COMMAND ----------
 

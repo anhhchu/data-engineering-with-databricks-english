@@ -36,6 +36,10 @@
 
 -- COMMAND ----------
 
+select * from events limit 10;
+
+-- COMMAND ----------
+
 -- MAGIC %md <i18n value="3b76127f-ef49-4024-a970-67ac52a1fa63"/>
 -- MAGIC 
 -- MAGIC 
@@ -85,11 +89,23 @@
 -- COMMAND ----------
 
 -- TODO
-CREATE OR REPLACE VIEW events_pivot
-<FILL_IN>
-("cart", "pillows", "login", "main", "careers", "guest", "faq", "down", "warranty", "finalize", 
+CREATE OR REPLACE VIEW events_pivot as
+select * from (
+  select user_id user, event_name
+  from events
+) pivot (count(*) for event_name in (
+"cart", "pillows", "login", "main", "careers", "guest", "faq", "down", "warranty", "finalize", 
 "register", "shipping_info", "checkout", "mattresses", "add_item", "press", "email_coupon", 
-"cc_info", "foam", "reviews", "original", "delivery", "premium")
+"cc_info", "foam", "reviews", "original", "delivery", "premium"
+))
+
+-- COMMAND ----------
+
+show tables
+
+-- COMMAND ----------
+
+select * from events_pivot
 
 -- COMMAND ----------
 
@@ -157,9 +173,16 @@ CREATE OR REPLACE VIEW events_pivot
 
 -- COMMAND ----------
 
+select * from transactions limit 10;
+
+-- COMMAND ----------
+
 -- TODO
 CREATE OR REPLACE VIEW clickpaths AS
-<FILL_IN>
+select e.*, t.* 
+from events_pivot e
+join transactions t
+on e.user = t.user_id
 
 -- COMMAND ----------
 
@@ -196,11 +219,16 @@ CREATE OR REPLACE VIEW clickpaths AS
 
 -- COMMAND ----------
 
+select items.item_name from sales limit 10;
+
+-- COMMAND ----------
+
 -- TODO
 CREATE OR REPLACE TABLE sales_product_flags AS
-<FILL_IN>
-EXISTS <FILL_IN>.item_name LIKE "%Mattress"
-EXISTS <FILL_IN>.item_name LIKE "%Pillow"
+select items, 
+  exists(items, item -> item.item_name like '%Mattress') as mattress,
+  exists(items, item -> item.item_name like '%Pillow') as pillow
+from sales
 
 -- COMMAND ----------
 

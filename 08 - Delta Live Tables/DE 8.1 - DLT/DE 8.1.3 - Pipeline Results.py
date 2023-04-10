@@ -60,6 +60,10 @@ display(files)
 
 # COMMAND ----------
 
+DA
+
+# COMMAND ----------
+
 # MAGIC %sql
 # MAGIC SELECT * FROM ${da.schema_name}.sales_order_in_la
 
@@ -73,4 +77,8 @@ display(files)
 # COMMAND ----------
 
 DA.cleanup()
+
+
+# COMMAND ----------
+
 
